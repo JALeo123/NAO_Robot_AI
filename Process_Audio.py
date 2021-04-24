@@ -16,10 +16,6 @@ def process_audio_input(audio_model, path):
     return y_pred[0]
 
 def get_audio(path):
-    # The folders in which we will put the audio samples and the noise samples
-
-    # Percentage of samples to use for validation
-
     # Seed to use when shuffling the dataset and the noise
     SHUFFLE_SEED = 43
 
