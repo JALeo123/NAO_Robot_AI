@@ -10,6 +10,13 @@ import cv2
 class Emotion:
     def __init__(self):
         self.emotion_model = keras.models.load_model('emotion_model')
+        self.ANGRY = 0
+        self.DISGUST = 1
+        self.FEAR = 2
+        self.HAPPY = 3
+        self.NEUTRAL = 4
+        self.SAD = 5
+        self.SURPRISE = 6
 
     def evaluate(self, input):
         # Convert to grey scale
@@ -28,6 +35,19 @@ class Emotion:
         # Return label index of prediction
         return classes[0]
 
+    def label_to_string(self, label):
+        switcher = {
+            self.ANGRY: "Angry",
+            self.DISGUST: "Disgust",
+            self.FEAR: "Fear",
+            self.HAPPY: "Happy",
+            self.NEUTRAL: "Neutral",
+            self.SAD: "Sad",
+            self.SURPRISE: "Surprise",
+        }
+        return switcher.get(label)
+
 emotion_class = Emotion()
 img = cv2.imread(r'C:\Users\david\Desktop\FER\train\angry\Training_3908.jpg')
-emotion_class.evaluate(img)
+label = emotion_class.evaluate(img)
+print(emotion_class.label_to_string(label))
