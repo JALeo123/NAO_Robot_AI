@@ -55,7 +55,6 @@ def main():
                 robot.say("Not Correct, Try again.")
                 time.sleep(res_wait_time)
 
-
     # End and Cleanup
     robot.say("Thanks! Bye!")
 
@@ -81,7 +80,7 @@ def save_image(robot):
     nao_img = robot.get_image()
     image = Image.fromstring("RBG",
                              (nao_img[Robot.IMAGE_WIDTH_IDX], nao_img[Robot.IMAGE_HEIGHT_IDX]),
-                             nao_img[Robot.IMAGE_DATA_IDX])
+                             str(bytearray(nao_img[Robot.IMAGE_DATA_IDX])))
     image.save(RobotGlobals.RAW_DIR + "emotion.jpg")
 
 
