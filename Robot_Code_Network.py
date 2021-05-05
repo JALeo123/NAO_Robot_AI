@@ -5,6 +5,7 @@ import EmotionModel
 import time
 import sys
 import os
+import cv2
 import RobotGlobals
 
 def main():
@@ -25,7 +26,7 @@ def main():
         if(file[-4:] == ".wav"):
             response = process_audio_input(audio_model, RAW_DIR+file)
         elif(file[-4:] == ".jpg"):
-            pass #For Images
+            response = emotion_model.process_file(RAW_DIR+file)
         elif(file[-4:] == ".txt"):
             print("Closing")
             #Delete Raw Data
@@ -34,14 +35,14 @@ def main():
             #End Program
             break
 
-        #Write Response
+        # Write Response
         file_out = open(PROCESSED_DIR + "Tmp_Data_Processed.txt", "w")
+        # TODO Need to differentiate responses
         file_out.write(str(response))
         file_out.close()
 
-        #Delete Raw Data
-        for file in os.listdir(RAW_DIR):
-            os.remove(RAW_DIR + file)
+        #Delete File
+        os.remove(RAW_DIR + file)
 
         print("Data Processed")
 

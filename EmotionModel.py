@@ -9,6 +9,7 @@ import numpy as np
 import glob
 import cv2
 
+
 class Emotion:
     def __init__(self):
         self.emotion_model = keras.models.load_model('emotion_model')
@@ -20,6 +21,10 @@ class Emotion:
         self.NEUTRAL = 4
         self.SAD = 5
         self.SURPRISE = 6
+
+        cascPath = r'./haar_classifier/haarcascade_frontalface_default.xml'
+        # Create the haar cascade
+        self.faceCascade = cv2.CascadeClassifier(cascPath)
 
     def evaluate(self, input):
         # Convert to grey scale
@@ -83,6 +88,35 @@ class Emotion:
             None:           0,
         }
         return switcher.get(self.last_result)
+
+    def process_file(self, file):
+        img = cv2.imread(file)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Detect faces in the image
+        faces = self.faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+
+        # Draw a rectangle around the face
+        for (x, y, w, h) in faces:
+            # Print dimension
+            print(x, y, w, h)
+
+            # Crop to face
+            gray = gray[y:y + h, x:x + w]
+
+            # Only one face per images, so break out just in case
+            break
+
+        gray = cv2.resize(gray, (48, 48), interpolation=cv2.INTER_LINEAR)
+
+        self.evaluate(gray)
+        return self.result_string_reduced()
 
 # Functions not associated with class
 
