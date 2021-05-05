@@ -1,0 +1,5 @@
+TMP_DATA_DIR = "Tmp_Data/"
+PROCESSED_DIR = TMP_DATA_DIR + "Tmp_Data_Processed/"
+RAW_DIR = TMP_DATA_DIR + "Tmp_Data_Raw/"
+ROBOT_AUDIO_FILE = TMP_DATA_DIR + "response.wav"
+LOCAL_AUDIO_FILE = RAW_DIR + "response.wav"

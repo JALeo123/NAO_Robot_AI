@@ -3,30 +3,24 @@ import time
 import os
 import scp
 import sys
+import Robot
+import RobotGlobals
+
+res_wait_time = 1
+user = "nao"
+password = "nao"
+
 
 def main():
-    # Code to Control Robot
-    robot_ip = "192.168.0.22"
-    port = 9559
-    res_wait_time = 1
-    robot_audio_path = "Tmp_Data/response.wav"
-    pc_audio_path = "Tmp_Data/Tmp_Data_Raw/response.wav"
-    user = "nao"
-    password = "nao"
-
-
-
-    #Connect Robot Proxies
-    text_to_speech = ALProxy("ALTextToSpeech", robot_ip, port)
-    record = ALProxy("ALAudioRecorder", robot_ip, port)
+    robot = Robot()
 
     #Set Up
-    client = scp.Client(host=robot_ip, user=user, password=password)
+    client = scp.Client(host=robot.IP, user=user, password=password)
 
     #Start Main Loop
-    text_to_speech.say("Hello! Want to begin? Say One for Yes and Zero for No")
+    robot.say("Hello! Want to begin? Say One for Yes and Zero for No")
 
-    record_transfer(record, client, robot_audio_path, pc_audio_path, res_wait_time)
+    record_transfer(robot, client)
     response = get_processed_response()
 
     #Main Loop
@@ -34,61 +28,64 @@ def main():
         check = 1
         ques_txt, ans = get_question()
         while(check == 1):
-            text_to_speech.say(ques_txt)
+            robot.say(ques_txt)
 
-            record_transfer(record, client, robot_audio_path, pc_audio_path, res_wait_time)
+            record_transfer(robot, client)
             ans_in = get_processed_response()
 
             if(ans == ans_in):
-                text_to_speech.say("Correct!")
+                robot.say("Correct!")
                 time.sleep(res_wait_time)
 
-                text_to_speech.say("Do you want to continue? Say One for Yes and Zero for No")
+                robot.say("Do you want to continue? Say One for Yes and Zero for No")
 
-                record_transfer(record, client, robot_audio_path, pc_audio_path, res_wait_time)
+                record_transfer(robot, client)
                 response = get_processed_response()
                 if(response == 1):
                     ques_txt, ans = get_question()
                 else:
                     check = 0
             else:
-                text_to_speech.say("Not Correct, Try again.")
+                robot.say("Not Correct, Try again.")
                 time.sleep(res_wait_time)
 
-    #End and Cleanup
-    text_to_speech.say("Thanks! Bye!")
+            nao_img = robot.get_image()
+            image = Image.fromstring("RBG",
+                                     (nao_img[IMAGE_WIDTH_IDX], nao_img[IMAGE_HEIGHT_IDX]),
+                                     nao_img[IMAGE_DATA_IDX])
+            image.save(RAW_DIR + "emotion.jpg", "JPG")
 
-    for file in os.listdir("Tmp_Data_Raw/Tmp_Data_Processed"):
-        os.remove("Tmp_Data_Raw/Tmp_Data_Processed/" + file)
+    #End and Cleanup
+    robot.say("Thanks! Bye!")
+
+    for file in os.listdir(PROCESSED_DIR):
+        os.remove(PROCESSED_DIR + file)
 
     end_program()
 
-def record_transfer(record, client, robot_audio_path, pc_audio_path, res_wait_time):
-    record.startMicrophonesRecording(robot_audio_path, 'wav', 16000, (0, 0, 1, 0))
+def record_transfer(robot, client):
+    robot.record_audio(res_wait_time)
     time.sleep(res_wait_time)
-    record.stopMicrophonesRecording()
-    time.sleep(res_wait_time)
-
-    client.transfer(pc_audio_path, robot_audio_path)
+    client.transfer(LOCAL_AUDIO_FILE, ROBOT_AUDIO_FILE)
 
 def get_processed_response():
     #Get Processed Data
-    while(len(os.listdir("Tmp_Data/Tmp_Data_Processed")) == 0):
+    while(len(os.listdir(PROCESSED_DIR)) == 0):
         pass
 
-    file_p = os.listdir("Tmp_Data/Tmp_Data_Processed")[0]
-    file = open("Tmp_Data/Tmp_Data_Processed/"+file_p, "r")
+    file_p = os.listdir(PROCESSED_DIR)[0]
+    file = open(PROCESSED_DIR + file_p, "r")
     file_line = file.readlines()
     response = file_line[0]
 
     # Delete Processed Data
-    for file in os.listdir("Tmp_Data/Tmp_Data_Processed"):
-        os.remove("Tmp_Data/Tmp_Data_Processed/" + file)
+    for file in os.listdir(PROCESSED_DIR):
+        os.remove(PROCESSED_DIR + file)
 
     return response
 
 def end_program():
-    file = open("Tmp_Data/Tmp_Data_Raw/end.txt", "w")
+    file = open(RAW_DIR + "end.txt", "w")
     file.close()
 
 if __name__ == "__main__":
