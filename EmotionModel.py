@@ -10,7 +10,7 @@ import glob
 import cv2
 
 
-class Emotion:
+class EmotionModel:
     def __init__(self):
         self.emotion_model = keras.models.load_model('emotion_model')
         self.last_result = None
