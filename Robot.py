@@ -47,6 +47,10 @@ class Robot:
         self.text_to_speech.say(text)
         return
 
+    def stop_rec(self):
+        self.audio_recorder.stopMicrophonesRecording()
+        return
+
     def record_audio(self, sleep_seconds):
         self.audio_recorder.startMicrophonesRecording(self.audio_path, 'wav', 16000, (0, 0, 1, 0))
         time.sleep(sleep_seconds)
