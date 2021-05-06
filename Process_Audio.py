@@ -12,7 +12,7 @@ def process_audio_input(audio_model, path):
         # Predict
         y_pred = audio_model.predict(audio)
         y_pred = np.argmax(y_pred, axis=-1)
-
+    print("Response: " + str(y_pred[0]))
     return y_pred[0]
 
 def get_audio(path):

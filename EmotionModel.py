@@ -1,6 +1,9 @@
 # Literally just to stop tensorflow from complaining about the fact
 # that my GPU isn't CUDA compatible...so I don't get ANY warning now
 import os
+
+import RobotGlobals
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from tensorflow import keras
@@ -12,7 +15,7 @@ import cv2
 
 class EmotionModel:
     def __init__(self):
-        self.emotion_model = keras.models.load_model('emotion_model')
+        self.emotion_model = keras.models.load_model(RobotGlobals.REPO_PATH + 'emotion_model')
         self.last_result = None
         self.ANGRY = 0
         self.DISGUST = 1
@@ -22,7 +25,7 @@ class EmotionModel:
         self.SAD = 5
         self.SURPRISE = 6
 
-        cascPath = r'./haar_classifier/haarcascade_frontalface_default.xml'
+        cascPath = RobotGlobals.REPO_PATH + 'haar_classifier/haarcascade_frontalface_default.xml'
         # Create the haar cascade
         self.faceCascade = cv2.CascadeClassifier(cascPath)
 
@@ -90,8 +93,10 @@ class EmotionModel:
         return switcher.get(self.last_result)
 
     def process_file(self, file):
-        img = cv2.imread(file)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.imread(file)
+        #print(img.shape)
+        #gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        #gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Detect faces in the image
         faces = self.faceCascade.detectMultiScale(
@@ -116,13 +121,14 @@ class EmotionModel:
         gray = cv2.resize(gray, (48, 48), interpolation=cv2.INTER_LINEAR)
 
         self.evaluate(gray)
+        print("Emotion: " + self.result_string_reduced())
         return self.result_string_reduced()
 
 # Functions not associated with class
 
 
 def example():
-    emotion_class = Emotion()
+    emotion_class = EmotionModel()
     img = cv2.imread(r'C:\Users\david\Desktop\FER\train\angry\Training_3908.jpg')
     emotion_class.evaluate(img)
     print(emotion_class.result_string_raw())
@@ -135,7 +141,7 @@ def evaluateDirectory():
     neutrals = 0
     negatives = 0
 
-    emotion_class = Emotion()
+    emotion_class = EmotionModel()
     files = glob.glob(r"C:\Users\david\Desktop\FER\test\surprise\*.jpg")
     for file in files:
         # Read the image
@@ -154,3 +160,5 @@ def evaluateDirectory():
 
 
 #evaluateDirectory()
+# model = EmotionModel()
+# model.process_file(RobotGlobals.LOCAL_PHOTO_FILE)

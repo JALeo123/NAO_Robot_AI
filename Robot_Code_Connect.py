@@ -2,13 +2,16 @@ from naoqi import ALProxy
 import time
 import os
 import scp
+import paramiko
 import sys
 import Robot
 import RobotGlobals
 import Robot_Speech
 from PIL import Image
 
-res_wait_time = 1
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+res_wait_time = 0.5
 user = "nao"
 password = "nao"
 
@@ -17,7 +20,10 @@ def main():
     robot = Robot.Robot()
 
     # Set Up
-    client = scp.Client(host=robot.IP, user=user, password=password)
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_client.connect(hostname=robot.IP, username=user, password=password)
+    client = scp.SCPClient(ssh_client.get_transport())
 
     # Start Main Loop
     robot.say("Hello! Want to begin? Say One for Yes and Zero for No")
@@ -25,8 +31,9 @@ def main():
     record_data(robot, client)
     emotion, response = get_processed_response()
 
+    print(response)
     # Main Loop
-    if response == 1:
+    if response != 0:
         check = 1
         ques_txt, ans = Robot_Speech.get_question()
         while check == 1:
@@ -66,36 +73,53 @@ def main():
 
 def record_data(robot, client):
     record_transfer(robot, client)
-    save_image(robot)
-    time.sleep(res_wait_time)
+    save_image(robot, client)
+    # File indicating we are done
+    done_file = open(RobotGlobals.RAW_DONE, "w")
+    done_file.close()
 
 
 def record_transfer(robot, client):
     robot.record_audio(res_wait_time)
     time.sleep(res_wait_time)
-    client.transfer(RobotGlobals.LOCAL_AUDIO_FILE, RobotGlobals.ROBOT_AUDIO_FILE)
+    client.get(RobotGlobals.ROBOT_AUDIO_FILE, RobotGlobals.LOCAL_AUDIO_FILE)
+    #client.put(RobotGlobals.LOCAL_AUDIO_FILE, RobotGlobals.ROBOT_AUDIO_FILE)
 
 
-def save_image(robot):
-    nao_img = robot.get_image()
-    image = Image.fromstring("RBG",
-                             (nao_img[Robot.IMAGE_WIDTH_IDX], nao_img[Robot.IMAGE_HEIGHT_IDX]),
-                             str(bytearray(nao_img[Robot.IMAGE_DATA_IDX])))
-    image.save(RobotGlobals.RAW_DIR + "emotion.jpg")
+def save_image(robot, client):
+    robot.get_image()
+    client.get(RobotGlobals.ROBOT_PHOTO_FILE_PATH, RobotGlobals.LOCAL_PHOTO_FILE)
+    # image = Image.fromstring("RBG",
+    #                          (nao_img[Robot.IMAGE_WIDTH_IDX], nao_img[Robot.IMAGE_HEIGHT_IDX]),
+    #                          str(bytearray(nao_img[Robot.IMAGE_DATA_IDX])))
+    #image.save(RobotGlobals.RAW_DIR + "emotion.jpg")
 
 
 def get_processed_response():
-    # Get Processed Data
-    while len(os.listdir(RobotGlobals.PROCESSED_DIR)) != 2:
-        pass
+    while True:
+        # Get Processed Data
+        while len(os.listdir(RobotGlobals.PROCESSED_DIR)) < 2:
+            pass
 
-    # Get first file and open
+        done = False
+        file_list = os.listdir(RobotGlobals.PROCESSED_DIR)
+        for f in file_list:
+            if f == "processed.done":
+                done = True
+                time.sleep(0.1)
+                os.remove(RobotGlobals.PROCESSED_DONE)
+                break
+
+        if done:
+            break
+
     emotion_file = open(RobotGlobals.PROCESSED_EMOTION, "r")
-    audio_file = open(RobotGlobals.PROCESSED_AUDIO, "r")
-
-    # Read data
     emotion = emotion_file.readlines()[0]
+    emotion_file.close()
+
+    audio_file = open(RobotGlobals.PROCESSED_AUDIO, "r")
     response = audio_file.readlines()[0]
+    audio_file.close()
 
     # Delete Processed Data
     os.remove(RobotGlobals.PROCESSED_AUDIO)

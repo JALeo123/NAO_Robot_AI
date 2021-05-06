@@ -2,7 +2,8 @@ import random
 
 def get_question():
     nums = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-    nums_org = nums.copy()
+    nums_org = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    #nums_org = nums.copy()
     nums_value = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     check = 0
@@ -20,3 +21,7 @@ def get_question():
             check = 1
 
     return question, answer
+
+# quest, ans = get_question()
+# print(quest)
+# print(ans)
