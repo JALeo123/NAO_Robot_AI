@@ -8,7 +8,7 @@ IMAGE_DATA_IDX = 6
 
 class Robot:
     def __init__(self):
-        self.IP = "169.254.218.180"
+        self.IP = "169.254.251.202"
         self.PORT = 9559
 
         # Audio Configuration

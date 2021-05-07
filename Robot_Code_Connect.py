@@ -39,10 +39,15 @@ def main():
         while check == 1:
             robot.say(ques_txt)
 
+            time.sleep(0.5)
             record_data(robot, client)
             emotion, ans_in = get_processed_response()
 
-            if ans == ans_in:
+            print("Read Emotion: " + emotion)
+            print("Read Answer: " + ans_in)
+            print("Expected Answer: " + str(ans))
+
+            if str(ans) == ans_in:
                 robot.say("Correct!")
                 time.sleep(res_wait_time)
 
@@ -50,17 +55,20 @@ def main():
 
                 record_data(robot, client)
                 emotion, response = get_processed_response()
-                if response == 1:
+                if response != "0":
                     ques_txt, ans = Robot_Speech.get_question()
                 else:
                     check = 0
-            elif emotion == "Negative":
-                # TODO
-                # Just to have feedback
-                robot.say("Looks like your upset")
+            elif ans_in == "10":
+                # Do nothing
+                continue
             else:
-                robot.say("Not Correct, Try again.")
-                time.sleep(res_wait_time)
+                robot.say("Not Correct.")
+
+                if emotion == "Negative":
+                    # Just to have feedback
+                    robot.say("Looks like your upset.")
+                    robot.say("Keep trying, buddy.")
 
     # End and Cleanup
     robot.say("Thanks! Bye!")
@@ -80,7 +88,7 @@ def record_data(robot, client):
 
 
 def record_transfer(robot, client):
-    robot.record_audio(res_wait_time)
+    robot.record_audio(2)
     time.sleep(res_wait_time)
     client.get(RobotGlobals.ROBOT_AUDIO_FILE, RobotGlobals.LOCAL_AUDIO_FILE)
     #client.put(RobotGlobals.LOCAL_AUDIO_FILE, RobotGlobals.ROBOT_AUDIO_FILE)
